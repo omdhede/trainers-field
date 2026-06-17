@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 98%;
+    --foreground: 20 9% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 9% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 9% 15%;
+
+    --primary: 16 68% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 40 23% 94%;
+    --secondary-foreground: 20 9% 15%;
+
+    --muted: 40 23% 94%;
+    --muted-foreground: 25 5% 40%;
+
+    --accent: 40 23% 94%;
+    --accent-foreground: 20 9% 15%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 71% 33%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 36 86% 56%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 36 21% 89%;
+    --input: 36 21% 89%;
+    --ring: 16 68% 52%;
+
+    --chart-1: 16 68% 52%;
+    --chart-2: 160 71% 33%;
+    --chart-3: 210 64% 55%;
+    --chart-4: 36 86% 56%;
+    --chart-5: 340 53% 60%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 18 80% 58%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 63%;
+
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 55% 45%;
+    --success-foreground: 0 0% 9%;
+
+    --warning: 36 80% 60%;
+    --warning-foreground: 0 0% 9%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 18 80% 58%;
+
+    --chart-1: 18 80% 58%;
+    --chart-2: 160 55% 45%;
+    --chart-3: 210 70% 65%;
+    --chart-4: 36 80% 60%;
+    --chart-5: 340 60% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card text-card-foreground rounded-xl border border-border p-4;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground font-semibold rounded-lg px-4 py-2.5 text-sm hover:opacity-90 transition-opacity;
+  }
+
+  .btn-ghost {
+    @apply bg-secondary text-secondary-foreground font-medium rounded-lg px-4 py-2.5 text-sm hover:bg-muted transition-colors;
+  }
+}
+
+input[type="file"] {
+  @apply hidden;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-border; border-radius: 3px; }
