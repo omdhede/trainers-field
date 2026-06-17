@@ -36,9 +36,13 @@ export async function runAIAnalysis(state: AppState): Promise<AIPlan> {
       .map((s) => ({ id: s.id, title: s.title, detail: s.detail }))
   );
 
+  const storedKey = typeof window !== "undefined" ? localStorage.getItem("rta-openai-key") : null;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (storedKey) headers["x-openai-key"] = storedKey;
+
   const res = await fetch("/api/analyse", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       weekNumber,
       phaseName: phase.name,
