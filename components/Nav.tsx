@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, CheckSquare, Upload, BarChart2 } from "lucide-react";
+import { Activity, CheckSquare, Upload, BarChart2, Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ const links = [
   { href: "/checklist", label: "Checklist", icon: CheckSquare },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
   { href: "/upload", label: "Upload", icon: Upload },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function Nav() {
@@ -49,7 +50,7 @@ export default function Nav() {
 
       {/* Mobile bottom nav */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {links.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}

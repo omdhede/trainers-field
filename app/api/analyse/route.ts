@@ -100,10 +100,10 @@ Return the AIPlan JSON.`;
 }
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = req.headers.get("x-openai-key") || process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "OPENAI_API_KEY is not configured on the server." },
+      { error: "No OpenAI API key configured. Add one in the Settings page or set OPENAI_API_KEY on the server." },
       { status: 500 }
     );
   }

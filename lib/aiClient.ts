@@ -29,13 +29,20 @@ export async function runAIAnalysis(state: AppState): Promise<AIPlan> {
       avgHR,
     }));
 
+  // Only send incomplete sessions — AI must not touch already-done work
   const sessions = WEEKLY_PLAN.flatMap((d) =>
-    d.sessions.map((s) => ({ id: s.id, title: s.title, detail: s.detail }))
+    d.sessions
+      .filter((s) => !checklist.completed[s.id])
+      .map((s) => ({ id: s.id, title: s.title, detail: s.detail }))
   );
+
+  const storedKey = typeof window !== "undefined" ? localStorage.getItem("rta-openai-key") : null;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (storedKey) headers["x-openai-key"] = storedKey;
 
   const res = await fetch("/api/analyse", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       weekNumber,
       phaseName: phase.name,

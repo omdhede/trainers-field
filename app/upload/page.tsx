@@ -12,6 +12,7 @@ import {
 } from "@/lib/store";
 import { parseWhoopCSV, parseWhoopWorkoutsCSV, parseStravaCSV, formatPace } from "@/lib/parsers";
 import { runAIAnalysis } from "@/lib/aiClient";
+import { applyAutoCheck } from "@/lib/autoCheck";
 import type { AppState } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,7 +61,7 @@ export default function UploadPage() {
         const parsed = parseWhoopCSV(ev.target?.result as string);
         if (parsed.length === 0) throw new Error("No valid rows found");
         const merged = mergeWhoopData(state.whoopData, parsed);
-        const next = { ...state, whoopData: merged };
+        const next = applyAutoCheck({ ...state, whoopData: merged });
         setState(next);
         saveState(next);
         setWhoopStatus("success");
@@ -84,7 +85,7 @@ export default function UploadPage() {
         const parsed = parseWhoopWorkoutsCSV(ev.target?.result as string);
         if (parsed.length === 0) throw new Error("No valid workouts found");
         const merged = mergeWhoopWorkouts(state.whoopWorkouts, parsed);
-        const next = { ...state, whoopWorkouts: merged };
+        const next = applyAutoCheck({ ...state, whoopWorkouts: merged });
         setState(next);
         saveState(next);
         setWorkoutsStatus("success");
@@ -108,7 +109,7 @@ export default function UploadPage() {
         const parsed = parseStravaCSV(ev.target?.result as string);
         if (parsed.length === 0) throw new Error("No running activities found");
         const merged = mergeRunData(state.runData, parsed);
-        const next = { ...state, runData: merged };
+        const next = applyAutoCheck({ ...state, runData: merged });
         setState(next);
         saveState(next);
         setStravaStatus("success");
@@ -253,7 +254,7 @@ export default function UploadPage() {
                 <Loader2 size={16} className="text-primary animate-spin flex-shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-primary">AI is updating your plan…</p>
-                  <p className="text-xs text-primary/70 mt-0.5">Analysing your WHOOP & run data to fine-tune this week's sessions.</p>
+                  <p className="text-xs text-primary/70 mt-0.5">Analysing your WHOOP &amp; run data to fine-tune this week&apos;s sessions.</p>
                 </div>
               </>
             ) : (
