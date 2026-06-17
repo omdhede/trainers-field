@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, RotateCcw, Sparkles, Loader2 } from "lucide-react";
 import { loadState, saveState } from "@/lib/store";
 import { runAIAnalysis } from "@/lib/aiClient";
+import { applyAutoCheck } from "@/lib/autoCheck";
 import { WEEKLY_PLAN, PHASES } from "@/lib/types";
 import type { AppState } from "@/lib/types";
 import { Card } from "@/components/ui/card";
@@ -14,7 +15,12 @@ export default function Checklist() {
   const [aiAnalysing, setAiAnalysing] = useState(false);
   const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
 
-  useEffect(() => { setState(loadState()); }, []);
+  useEffect(() => {
+    const loaded = loadState();
+    const withAuto = applyAutoCheck(loaded);
+    if (withAuto !== loaded) saveState(withAuto); // persist only if something changed
+    setState(withAuto);
+  }, []);
 
   if (!state) return <div className="py-20 text-center text-muted-foreground">Loading…</div>;
 
