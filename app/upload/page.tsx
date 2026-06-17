@@ -254,7 +254,7 @@ export default function UploadPage() {
                 <Loader2 size={16} className="text-primary animate-spin flex-shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-primary">AI is updating your plan…</p>
-                  <p className="text-xs text-primary/70 mt-0.5">Analysing your WHOOP & run data to fine-tune this week's sessions.</p>
+                  <p className="text-xs text-primary/70 mt-0.5">Analysing your WHOOP &amp; run data to fine-tune this week&apos;s sessions.</p>
                 </div>
               </>
             ) : (
