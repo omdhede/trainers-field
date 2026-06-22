@@ -1,5 +1,5 @@
 import type { AIPlan, AppState } from "./types";
-import { WEEKLY_PLAN, PHASES } from "./types";
+import { getWeeklyPlan, PHASES } from "./types";
 
 export async function runAIAnalysis(state: AppState): Promise<AIPlan> {
   const { checklist, whoopData, runData } = state;
@@ -29,10 +29,11 @@ export async function runAIAnalysis(state: AppState): Promise<AIPlan> {
       avgHR,
     }));
 
-  // Only send incomplete sessions — AI must not touch already-done work
-  const sessions = WEEKLY_PLAN.flatMap((d) =>
+  // Only send incomplete sessions — AI must not touch already-done work.
+  // Foot-care sessions are excluded — they're a fixed rehab protocol, not for AI tweaking.
+  const sessions = getWeeklyPlan(weekNumber).flatMap((d) =>
     d.sessions
-      .filter((s) => !checklist.completed[s.id])
+      .filter((s) => !checklist.completed[s.id] && !s.id.endsWith("-foot"))
       .map((s) => ({ id: s.id, title: s.title, detail: s.detail }))
   );
 

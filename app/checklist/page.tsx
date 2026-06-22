@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCcw, Sparkles, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, Sparkles, Loader2, Flame, Snowflake, Apple, Footprints } from "lucide-react";
 import { loadState, saveState } from "@/lib/store";
 import { runAIAnalysis } from "@/lib/aiClient";
 import { applyAutoCheck } from "@/lib/autoCheck";
-import { WEEKLY_PLAN, PHASES } from "@/lib/types";
+import { getWeeklyPlan, PHASES } from "@/lib/types";
 import type { AppState } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,8 @@ export default function Checklist() {
   const weekNum = checklist.weekNumber;
   const phase = PHASES.find((p) => weekNum >= p.minWeek && weekNum <= p.maxWeek) || PHASES[0];
 
-  const allIds = WEEKLY_PLAN.flatMap((d) => d.sessions.map((s) => s.id));
+  const weeklyPlan = getWeeklyPlan(weekNum);
+  const allIds = weeklyPlan.flatMap((d) => d.sessions.map((s) => s.id));
   const completedCount = allIds.filter((id) => checklist.completed[id]).length;
   const pct = Math.round((completedCount / allIds.length) * 100);
 
@@ -165,7 +166,7 @@ export default function Checklist() {
       )}
 
       {/* Sessions */}
-      {WEEKLY_PLAN.map((day) => {
+      {weeklyPlan.map((day) => {
         const dayDone = day.sessions.every((s) => checklist.completed[s.id]);
         return (
           <div key={day.day}>
@@ -212,6 +213,21 @@ export default function Checklist() {
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{displayDetail}</p>
+
+                      {/* Warm-up & cool-down */}
+                      {s.warmup && (
+                        <p className="text-xs text-muted-foreground/70 mt-1.5 leading-relaxed flex gap-1.5">
+                          <Flame size={12} className="text-warning mt-0.5 flex-shrink-0" />
+                          <span><span className="font-semibold text-warning/90">Warm-up:</span> {s.warmup}</span>
+                        </p>
+                      )}
+                      {s.cooldown && (
+                        <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed flex gap-1.5">
+                          <Snowflake size={12} className="text-chart-3 mt-0.5 flex-shrink-0" />
+                          <span><span className="font-semibold text-chart-3">Cool-down:</span> {s.cooldown}</span>
+                        </p>
+                      )}
+
                       {mod && (
                         <button
                           onClick={(e) => toggleOriginal(e, s.id)}
@@ -228,9 +244,40 @@ export default function Checklist() {
                 );
               })}
             </div>
+
+            {/* Daily diet goal */}
+            <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-success/5 border border-success/15">
+              <Apple size={13} className="text-success mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                <span className="font-semibold text-success">Nutrition:</span> {day.diet}
+              </p>
+            </div>
           </div>
         );
       })}
+
+      {/* Flat-foot recovery */}
+      <Card className="p-5 bg-chart-2/5 border-chart-2/20">
+        <div className="flex items-center gap-2 mb-2">
+          <Footprints size={15} className="text-chart-2" />
+          <h3 className="font-semibold text-sm">Flat-Foot Recovery Protocol</h3>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Your daily <span className="font-semibold">🦶 Foot care</span> sessions build arch strength and correct overpronation —
+          consistency beats intensity, so a few minutes <em>every day</em> is the goal. The cornerstone is the
+          <span className="font-semibold"> short-foot exercise</span>: plant the heel and draw the ball of the foot toward it to
+          lift the arch — <span className="font-semibold">without curling the toes</span> — and hold.
+        </p>
+        <p className="text-xs text-muted-foreground leading-relaxed mt-2">
+          <span className="font-semibold text-chart-2">This week (Week {weekNum}):</span>{" "}
+          {weeklyPlan[0].sessions.find((s) => s.id.endsWith("-foot"))?.detail}
+        </p>
+        <p className="text-xs text-muted-foreground/70 leading-relaxed mt-2">
+          Expect better balance & control in 3–6 weeks, measurable arch height in 6–12 weeks. Pair with stability or
+          arch-support shoes. <span className="font-semibold text-warning">Foot fatigue is normal</span>, but sharp pain along the
+          inner arch or ankle means stop and see a physio/podiatrist (possible posterior tibial tendon issue).
+        </p>
+      </Card>
 
       {/* Phase guide */}
       <Card className="p-5">
