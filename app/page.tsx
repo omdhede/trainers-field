@@ -4,7 +4,7 @@ import Link from "next/link";
 import { TrendingDown, Zap, Heart, Moon, Upload, ArrowRight } from "lucide-react";
 import { loadState } from "@/lib/store";
 import { formatPace } from "@/lib/parsers";
-import { MILESTONES, PHASES, WEEKLY_PLAN } from "@/lib/types";
+import { MILESTONES, PHASES, getWeeklyPlan } from "@/lib/types";
 import type { AppState } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +30,8 @@ export default function Dashboard() {
   const bestPace = runs.length ? Math.min(...runs.map((r) => r.paceMinPerKm)) : 8.0;
   const currentMilestoneIdx = MILESTONES.findIndex((m) => bestPace <= m.pace + 0.3);
 
-  const allSessions = WEEKLY_PLAN.flatMap((d) => d.sessions.map((s) => s.id));
+  const weeklyPlan = getWeeklyPlan(weekNum);
+  const allSessions = weeklyPlan.flatMap((d) => d.sessions.map((s) => s.id));
   const completedCount = allSessions.filter((id) => checklist.completed[id]).length;
   const weekPct = Math.round((completedCount / allSessions.length) * 100);
 
@@ -194,7 +195,7 @@ export default function Dashboard() {
           <span className="text-sm font-bold text-success">{weekPct}%</span>
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {WEEKLY_PLAN.map((d) => {
+          {weeklyPlan.map((d) => {
             const dayDone = d.sessions.every((s) => checklist.completed[s.id]);
             return (
               <div key={d.day} className="text-center">

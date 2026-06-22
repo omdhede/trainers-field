@@ -1,5 +1,5 @@
 import type { AppState } from "./types";
-import { WEEKLY_PLAN } from "./types";
+import { getWeeklyPlan } from "./types";
 
 const DAY_OFFSET: Record<string, number> = {
   Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3,
@@ -53,7 +53,7 @@ export function applyAutoCheck(state: AppState): AppState {
   const newCompleted = { ...state.checklist.completed };
   let changed = false;
 
-  for (const day of WEEKLY_PLAN) {
+  for (const day of getWeeklyPlan(state.checklist.weekNumber)) {
     const dayDate = new Date(monday);
     dayDate.setDate(monday.getDate() + DAY_OFFSET[day.day]);
     // Can't auto-check future sessions
