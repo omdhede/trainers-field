@@ -155,46 +155,6 @@ const DIET = {
 };
 
 const BP = {
-  monRun: [
-    { upToWeek: 2, title: "Easy run · 3 km", detail: "Zone 1–2, very easy. Walk breaks OK whenever you need them." },
-    { upToWeek: 6, title: "Easy run · 4 km", detail: "Zone 2, conversational pace. Relaxed and steady." },
-    { upToWeek: 10, title: "Easy run · 5 km", detail: "Zone 2, nasal breathing only (~8:30–9:00/km)." },
-    { upToWeek: 17, title: "Easy run · 5 km", detail: "Zone 2 steady ~8:00/km. Smooth midfoot landing." },
-    { upToWeek: 24, title: "Easy run · 5–6 km", detail: "Zone 2 ~7:30/km. Relaxed but purposeful." },
-    { upToWeek: Infinity, title: "Easy run · 6 km", detail: "Zone 2 ~7:00/km. Easy aerobic mileage." },
-  ],
-  wedRun: [
-    { upToWeek: 2, title: "Easy run · 3 km", detail: "Zone 1–2, very easy. Walk breaks OK." },
-    { upToWeek: 6, title: "Easy run · 4 km", detail: "Zone 2, conversational pace." },
-    { upToWeek: 10, title: "Easy run · 5 km + strides", detail: "Zone 2 pace, finish with 4×20s strides — fast but relaxed, full recovery between." },
-    { upToWeek: 17, title: "Easy run · 5 km + strides", detail: "Zone 2 ~8:00/km, finish 4×20s strides." },
-    { upToWeek: 24, title: "Easy run · 5–6 km + strides", detail: "Zone 2 ~7:30/km, finish 6×20s strides." },
-    { upToWeek: Infinity, title: "Easy run · 6 km + strides", detail: "Zone 2 ~7:00/km, finish 6×20s strides." },
-  ],
-  intervals: [
-    { upToWeek: 2, title: "Easy run · 3 km", detail: "Base-building easy run, Zone 2. No hard efforts yet — we build the engine first." },
-    { upToWeek: 6, title: "Easy run · 4 km + strides", detail: "Zone 2 + 4×100 m strides to introduce light leg speed. Full recovery between." },
-    { upToWeek: 10, title: "Intervals · 4×400 m", detail: "1 km warmup → 4 reps @ ~7:30/km, 90s walk rest → 1 km cooldown." },
-    { upToWeek: 17, title: "Intervals · 6×400 m", detail: "1 km warmup → 6 reps @ ~6:45/km, 90s walk rest → 1 km cooldown." },
-    { upToWeek: 24, title: "Intervals · 8×400 m", detail: "1 km warmup → 8 reps @ ~6:15/km, 75s walk rest → 1 km cooldown." },
-    { upToWeek: Infinity, title: "Intervals · 5×800 m", detail: "1.5 km warmup → 5 reps @ ~5:30/km, 2 min jog rest → 1 km cooldown." },
-  ],
-  tempo: [
-    { upToWeek: 2, title: "Easy run · 3 km", detail: "Easy Zone 2. Tempo work comes later — stay relaxed." },
-    { upToWeek: 6, title: "Easy run · 4 km", detail: "Easy Zone 2, building aerobic base." },
-    { upToWeek: 10, title: "Tempo run · 4 km", detail: "1 km easy → 2 km @ 'comfortably hard' ~7:30/km → 1 km easy cooldown." },
-    { upToWeek: 17, title: "Tempo run · 5 km", detail: "1 km easy → 3 km @ ~7:00/km → 1 km easy cooldown." },
-    { upToWeek: 24, title: "Tempo run · 6 km", detail: "1 km easy → 4 km @ ~6:30/km → 1 km easy cooldown." },
-    { upToWeek: Infinity, title: "Tempo run · 7 km", detail: "1 km easy → 5 km @ ~5:45/km → 1 km easy cooldown." },
-  ],
-  longRun: [
-    { upToWeek: 2, title: "Long run · 4 km", detail: "Slowest run of the week (~9:00/km). Just time on feet." },
-    { upToWeek: 6, title: "Long run · 5–6 km", detail: "Zone 2, ~9:00/km. Adds ~1 km every couple of weeks." },
-    { upToWeek: 10, title: "Long run · 7–8 km", detail: "Zone 2 endurance, conversational throughout." },
-    { upToWeek: 17, title: "Long run · 9–10 km", detail: "Zone 2, steady. Practice mid-run fueling & hydration." },
-    { upToWeek: 24, title: "Long run · 11–14 km", detail: "Zone 2 endurance. Build gradually toward 14 km." },
-    { upToWeek: Infinity, title: "Long run · 14–16 km", detail: "Zone 2 — your aerobic cornerstone. Negative-split the last 2 km." },
-  ],
   monSwim: [
     { upToWeek: 2, title: "Easy swim · 20 min", detail: "Zone 1, technique focus. Active recovery from the morning run." },
     { upToWeek: 6, title: "Easy swim · 25 min", detail: "Zone 1–2, relaxed laps with drills." },
@@ -239,10 +199,68 @@ const BP = {
   ],
 };
 
+// ── Systematic per-week running progression ────────────────────────────────
+// Numbers step forward every week from a 5 km week-1 easy-run baseline, so no
+// two consecutive weeks are identical. Distances are computed (clean 0.5 km
+// steps); zones/paces/cues come from the phase. The long run undulates within
+// each 4-week microcycle (build, build, peak, recovery) which guarantees the
+// week as a whole always differs from the one before — even once easy runs and
+// intervals plateau. Every 4th week is a down/recovery week.
+
+const fmtKm = (n: number) => `${+n.toFixed(2)} km`;
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+
+// Easy run (Mon/Wed): 5 km baseline, +0.5 km every 2 weeks, capped at 8 km.
+function easyRunKm(w: number): number {
+  return clamp(5 + 0.5 * Math.floor((w - 1) / 2), 5, 8);
+}
+function easyPace(w: number): string {
+  if (w <= 4) return "~8:30/km";
+  if (w <= 10) return "~8:00/km";
+  if (w <= 18) return "~7:30/km";
+  if (w <= 24) return "~7:15/km";
+  return "~7:00/km";
+}
+
+// Long run (Sat): rising mean (6 → 15 km) with a 4-week undulation so each week
+// differs. Position in the microcycle: 0,1,2 build; 3 = down/recovery.
+function longRunKm(w: number): number {
+  const base = clamp(6 + 0.5 * (w - 1), 6, 15);
+  const undulation = [0, 0.5, 1, -3][(w - 1) % 4];
+  return clamp(base + undulation, 5, 16);
+}
+function longPace(w: number): string {
+  if (w <= 10) return "~9:00/km";
+  if (w <= 24) return "~8:00/km";
+  return "~7:30/km";
+}
+
+// Interval structure by phase; reps grow ~every 2 weeks within each band.
+function intervalSpec(w: number): { reps: number; unit: number; pace: string; rest: string } | null {
+  if (w <= 6) return null; // intervals not introduced yet
+  if (w <= 12) return { reps: clamp(4 + Math.floor((w - 7) / 2), 4, 8), unit: 400, pace: "~7:00/km", rest: "90s walk" };
+  if (w <= 18) return { reps: clamp(6 + Math.floor((w - 13) / 2), 6, 10), unit: 400, pace: "~6:30/km", rest: "75s walk" };
+  if (w <= 24) return { reps: clamp(4 + Math.floor((w - 19) / 2), 4, 7), unit: 600, pace: "~6:00/km", rest: "90s jog" };
+  return { reps: clamp(4 + Math.floor((w - 25) / 2), 4, 7), unit: 800, pace: "~5:30/km", rest: "2 min jog" };
+}
+
+function tempoKm(w: number): number {
+  if (w <= 10) return 2;
+  if (w <= 16) return 3;
+  if (w <= 24) return 4;
+  return 5;
+}
+function tempoPace(w: number): string {
+  if (w <= 10) return "~7:30/km";
+  if (w <= 16) return "~7:00/km";
+  if (w <= 24) return "~6:30/km";
+  return "~5:45/km";
+}
+
 export function getWeeklyPlan(weekNumber: number): DayPlan[] {
   const w = Math.max(1, weekNumber);
-  const isDownWeek = w % 4 === 0; // every 4th week (8, 12, …) is a recovery week
-  const isSpeedPhase = w >= 7; // intervals & tempo introduced from week 7
+  const isDownWeek = w % 4 === 0; // every 4th week (4, 8, 12, …) is recovery
+  const hasSpeed = w >= 7; // structured intervals & tempo from week 7
 
   const footSession = (id: string): SessionDef => ({
     id,
@@ -251,22 +269,71 @@ export function getWeeklyPlan(weekNumber: number): DayPlan[] {
     ...pick(BP.foot, w),
   });
 
-  // Intervals & long run get trimmed on down weeks.
-  const intervals = pick(BP.intervals, w);
-  const longRun = pick(BP.longRun, w);
-  const intervalsDetail = isDownWeek && isSpeedPhase
-    ? `DOWN WEEK — cut volume ~30%: run about ⅔ of the listed reps at the same effort, then stop. Prioritise recovery. (${intervals.detail})`
-    : intervals.detail;
-  const longRunDetail = isDownWeek
-    ? `DOWN WEEK — reduce distance ~30% from the listed range and keep it very easy. Let the body absorb the training. (${longRun.detail})`
-    : longRun.detail;
+  // ── Aerobic runs ──
+  // The week always has 5 runs, but each has a distinct purpose so no two read
+  // the same: Mon steady · Tue strides→intervals · Wed recovery · Thu
+  // progression→tempo · Sat long.
+  const easyKm = easyRunKm(w);
+  const recoveryKm = Math.max(3, easyKm - 1);
+  const ePace = easyPace(w);
+  const strideCount = w >= 18 ? 6 : 4;
+
+  const monRun = {
+    title: `Easy run · ${fmtKm(easyKm)}`,
+    detail: `Steady Zone 2, conversational pace (${ePace}). Nasal breathing only, smooth midfoot landing.`,
+  };
+  const recoveryRun = {
+    title: `Recovery run · ${fmtKm(recoveryKm)}`,
+    detail: `The week's shortest, easiest run — Zone 1, fully relaxed. Flush the legs between harder days; walk a little if you need to.`,
+  };
+  const stridesRun = {
+    title: `Easy run · ${fmtKm(easyKm)} + strides`,
+    detail: `Zone 2 easy (${ePace}), then ${strideCount}×20s strides — fast but relaxed, full recovery between. Builds leg speed without strain.`,
+  };
+  const progressionRun = {
+    title: `Progression run · ${fmtKm(easyKm)}`,
+    detail: `Start easy Zone 2, then gradually lift to a strong-but-controlled effort over the final third. A gentle on-ramp toward tempo work.`,
+  };
+
+  // Tue AM: easy + strides during the base phase, structured intervals from wk 7.
+  const spec = intervalSpec(w);
+  let tueRun: { title: string; detail: string };
+  if (!spec) {
+    tueRun = stridesRun;
+  } else {
+    const reps = isDownWeek ? Math.max(2, Math.round(spec.reps * 0.7)) : spec.reps;
+    const unitLabel = spec.unit >= 1000 ? `${spec.unit / 1000} km` : `${spec.unit} m`;
+    tueRun = {
+      title: `Intervals · ${reps}×${unitLabel}`,
+      detail: `1 km warmup → ${reps} reps @ ${spec.pace}, ${spec.rest} rest → 1 km cooldown.${isDownWeek ? " (Down week — reduced volume, prioritise recovery.)" : ""}`,
+    };
+  }
+
+  // Thu AM: progression run during the base phase, tempo from wk 7.
+  let thuRun: { title: string; detail: string };
+  if (w <= 6) {
+    thuRun = progressionRun;
+  } else {
+    const tk = isDownWeek ? Math.max(1, tempoKm(w) - 1) : tempoKm(w);
+    thuRun = {
+      title: `Tempo run · ${fmtKm(tk + 2)}`,
+      detail: `1 km easy → ${fmtKm(tk)} @ 'comfortably hard' ${tempoPace(w)} → 1 km easy cooldown.${isDownWeek ? " (Down week — shortened tempo.)" : ""}`,
+    };
+  }
+
+  // ── Long run (Sat AM) ──
+  const longKm = longRunKm(w);
+  const longRun = {
+    title: `Long run · ${fmtKm(longKm)}`,
+    detail: `Slowest run of the week (${longPace(w)}). Zone 2 endurance, conversational throughout.${longKm >= 10 ? " Practice mid-run fueling & hydration." : ""}${isDownWeek ? " (Down week — keep it very easy and short.)" : ""}`,
+  };
 
   return [
     {
       day: "Monday",
       diet: DIET.easySwim,
       sessions: [
-        { id: "mon-am", time: "AM", emoji: "🏃", ...pick(BP.monRun, w), warmup: WU.easyRun, cooldown: CD.easyRun },
+        { id: "mon-am", time: "AM", emoji: "🏃", ...monRun, warmup: WU.easyRun, cooldown: CD.easyRun },
         { id: "mon-pm", time: "PM", emoji: "🏊", ...pick(BP.monSwim, w), warmup: WU.swim, cooldown: CD.swim },
         footSession("mon-foot"),
       ],
@@ -278,11 +345,10 @@ export function getWeeklyPlan(weekNumber: number): DayPlan[] {
         {
           id: "tue-am",
           time: "AM",
-          emoji: isSpeedPhase ? "⚡" : "🏃",
-          title: intervals.title,
-          detail: intervalsDetail,
-          warmup: isSpeedPhase ? WU.speed : WU.easyRun,
-          cooldown: isSpeedPhase ? CD.speed : CD.easyRun,
+          emoji: spec ? "⚡" : "🏃",
+          ...tueRun,
+          warmup: spec ? WU.speed : WU.easyRun,
+          cooldown: spec ? CD.speed : CD.easyRun,
         },
         { id: "tue-pm", time: "PM", emoji: "🏋️", ...pick(BP.strength, w), warmup: WU.strength, cooldown: CD.strength },
         footSession("tue-foot"),
@@ -292,7 +358,7 @@ export function getWeeklyPlan(weekNumber: number): DayPlan[] {
       day: "Wednesday",
       diet: DIET.easySwim,
       sessions: [
-        { id: "wed-am", time: "AM", emoji: "🏃", ...pick(BP.wedRun, w), warmup: WU.easyRun, cooldown: CD.easyRun },
+        { id: "wed-am", time: "AM", emoji: "🏃", ...recoveryRun, warmup: WU.easyRun, cooldown: CD.easyRun },
         { id: "wed-pm", time: "PM", emoji: "🏊", ...pick(BP.wedSwim, w), warmup: WU.swim, cooldown: CD.swim },
         footSession("wed-foot"),
       ],
@@ -304,10 +370,10 @@ export function getWeeklyPlan(weekNumber: number): DayPlan[] {
         {
           id: "thu-am",
           time: "AM",
-          emoji: isSpeedPhase ? "🔥" : "🏃",
-          ...pick(BP.tempo, w),
-          warmup: isSpeedPhase ? WU.speed : WU.easyRun,
-          cooldown: isSpeedPhase ? CD.speed : CD.easyRun,
+          emoji: hasSpeed ? "🔥" : "🏃",
+          ...thuRun,
+          warmup: hasSpeed ? WU.speed : WU.easyRun,
+          cooldown: hasSpeed ? CD.speed : CD.easyRun,
         },
         { id: "thu-pm", time: "PM", emoji: "🧘", ...pick(BP.mobility, w) },
         footSession("thu-foot"),
@@ -325,7 +391,7 @@ export function getWeeklyPlan(weekNumber: number): DayPlan[] {
       day: "Saturday",
       diet: DIET.longRun,
       sessions: [
-        { id: "sat-am", time: "AM", emoji: "🛣️", title: longRun.title, detail: longRunDetail, warmup: WU.longRun, cooldown: CD.longRun },
+        { id: "sat-am", time: "AM", emoji: "🛣️", ...longRun, warmup: WU.longRun, cooldown: CD.longRun },
         footSession("sat-foot"),
       ],
     },
